@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/20 11:39:35 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/26 19:24:57 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/26 20:28:26 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,13 @@ int			valid_dir(char *dir_add)
 	struct stat	check;
 
 	if (!(dr = opendir(dir_add)))
+	{
 		if (lstat(dir_add, &check) == -1)
 		{
 			ft_printf("ls: %s: No such file or directory\n", dir_add);
 			return (0);
 		}
+	}
 	if (dr > 0)
 		closedir(dr);
 	return (1);

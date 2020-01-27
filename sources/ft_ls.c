@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 12:43:24 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/26 20:00:52 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/26 22:16:49 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,17 @@ char		*full_path(char *file_name, char *working_dir)
 	}
 	full_path = ft_strjoin(working_dir, file_name);
 	return (full_path);
+}
+
+void		free_tree(t_lsnode *curr)
+{
+	if (curr->left)
+		free_tree(curr->left);
+	if (curr->right)
+		free_tree(curr->right);
+	ft_strdel(&curr->name);
+	ft_strdel(&curr->working_dir);
+	free(curr);
 }
 
 void		print_tree(t_lsnode *curr, t_lsargs *ls_args)
@@ -84,7 +95,10 @@ t_lsnode	*make_node(char *de_name, char *currdir)
 	if (!(lsnode = (t_lsnode *)malloc(sizeof(t_lsnode))))
 		return (NULL);
 	lsnode->name = ft_strdup(de_name);
-	lsnode->working_dir = full_path(lsnode->name, currdir);
+	if (currdir)
+		lsnode->working_dir = full_path(lsnode->name, currdir);
+	else
+		lsnode->working_dir = ft_strdup(de_name);
 	if (lstat(lsnode->working_dir, &lsnode->lstat) == -1)
 	{
 		perror("lstat error");
@@ -96,6 +110,32 @@ t_lsnode	*make_node(char *de_name, char *currdir)
 	return (lsnode);
 }
 
+void	ft_ls_R(t_lsargs *ls_args, char *currdir)
+{
+	struct dirent	*de;
+	DIR				*dr;
+	struct stat		check;
+	char			*tmp;
+
+	ft_ls(ls_args, currdir);
+	dr = opendir(currdir);
+	while ((de = readdir(dr)) != NULL)
+	{
+		tmp = full_path(de->d_name, currdir);
+		lstat(tmp, &check);
+
+		//lmao, fix this garbage ->
+		if (S_ISDIR(check.st_mode) && ft_strcmp(de->d_name, "..") && ft_strcmp(de->d_name, "."))
+		{
+			ft_printf("directory: %s\n\n", tmp);
+			ft_ls_R(ls_args, tmp);
+		}
+		free(tmp);
+	}
+	if (dr > 0)
+		closedir(dr);
+}
+
 void	ft_ls(t_lsargs *ls_args, char *currdir)
 {
 	struct dirent	*de;
@@ -103,36 +143,63 @@ void	ft_ls(t_lsargs *ls_args, char *currdir)
 	t_lsnode		*root;
 
 	root = NULL;
-	if (!(dr = opendir(currdir)))
-	{
-		print_tree(make_node(&currdir[2], "./"), ls_args);
-		return ;
-	}
+	dr = opendir(currdir);
 	while ((de = readdir(dr)) != NULL)
 		fill_sort_tree(&root, make_node(de->d_name, currdir), ls_args->flags);
 	print_tree(root, ls_args);
-	// if (ft_strchr(ls_args->flags, 'R'))
-	// 	ft_ls_R(ls_args, currdir);
 	closedir(dr);
+}
+
+/*
+**	parses for specified files, then directories
+*/
+
+void	ls_order(t_lsargs *ls_args)
+{
+	int			i;
+	DIR			*dr;
+	t_lsnode	*root;
+
+	root = NULL;
+	i = -1;
+	while (ls_args->dirs[++i])
+	{
+		if (!(dr = opendir(ls_args->dirs[i])))
+		{
+			fill_sort_tree(&root, make_node(ls_args->dirs[i], NULL), \
+			ls_args->flags);
+		}
+		if (dr > 0)
+			closedir(dr);
+	}
+	if (root)
+	{
+		print_tree(root, ls_args);
+		free_tree(root);
+	}
+	i = -1;
+	while (ls_args->dirs[++i] && (dr = opendir(ls_args->dirs[i])))
+	{
+		if (ft_strchr(ls_args->flags, 'R'))
+			ft_ls_R(ls_args, ls_args->dirs[i]);
+		else
+			ft_ls(ls_args, ls_args->dirs[i]);
+		if (ls_args->dirs[i + 1])
+			ft_printf("\n\n");
+		if (dr > 0)
+			closedir(dr);
+	}
 }
 
 int		main(int ac, char **av)
 {
 	t_lsargs		*ls_args;
-	struct dirent	*de;
-	DIR				*dr;
 	int				i;
 
 	i = -1;
 	if (ac == 0)
 		return (0);
 	ls_args = parse_input(ac, av);
-
-	while (ls_args->dirs[++i])
-	{
-		ft_ls(ls_args, ls_args->dirs[i]);
-		if (ls_args->dirs[i + 1])
-			ft_printf("\n\n");
-	}
+	ls_order(ls_args);
 	return (0);
 }
