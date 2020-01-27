@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 12:43:09 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/20 19:23:46 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/26 14:57:56 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,14 +28,16 @@
 # include "../sources/libft/libft.h"
 
 # define LS_FLAGS "lRart"
+# define VALID_DIR "~./"
 
 typedef struct		s_lsnode
 {
 	char			*name;
+	char			*working_dir;
 	int				is_dir;
-	struct stat		stat;
-	struct s_node	*left;
-	struct s_node	*right;
+	struct stat		lstat;
+	struct s_lsnode	*left;
+	struct s_lsnode	*right;
 }					t_lsnode;
 
 typedef struct		s_lsargs

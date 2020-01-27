@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/20 11:39:35 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/20 18:59:14 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/26 19:24:57 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,15 +16,27 @@ int			valid_dir(char *dir_add)
 {
 	DIR			*dr;
 	struct stat	check;
-	
+
 	if (!(dr = opendir(dir_add)))
 		if (lstat(dir_add, &check) == -1)
 		{
 			ft_printf("ls: %s: No such file or directory\n", dir_add);
 			return (0);
 		}
-	closedir(dr);
+	if (dr > 0)
+		closedir(dr);
 	return (1);
+}
+
+char		*fix_dir(char *dir)
+{
+	char	*tmp;
+	char	*fixed_dir;
+
+	if (ft_strchr(VALID_DIR, dir[0]) && dir[ft_strlen(dir) - 1] == '/')
+		return (ft_strdup(dir));
+	else
+		return(ft_strjoin("./", dir));
 }
 
 /*
@@ -37,20 +49,23 @@ char		**add_dirs(int i, int ac, char **av)
 	int			dir_num;
 	char		**dirs;
 	int			total_dirs;
+	char		*fixed_dir;
 
 	total_dirs = ac - i;
 	if (i == ac)
 	{
-		dirs = (char **)malloc(sizeof(char *) + 1);
+		dirs = (char **)malloc(sizeof(char *) * 2);
 		dirs[0] = ft_strdup("./");
+		dirs[1] = NULL;
 		return (dirs);
 	}
 	dirs = (char **)malloc(sizeof(char *) * (total_dirs) + 1);
 	dir_num = -1;
 	while (i < ac)
 	{
-		if (valid_dir(av[i]))
-			dirs[++dir_num] = ft_strdup(av[i]);
+		fixed_dir = fix_dir(av[i]);
+		if (valid_dir(fixed_dir))
+			dirs[++dir_num] = fixed_dir;
 		i++;
 	}
 	while (dir_num < total_dirs)
@@ -80,7 +95,10 @@ void		parse_flags(char *flags, char *arg)
 		if (ft_strchr(LS_FLAGS, arg[i]))
 			ft_straddflag(flags, arg[i]);
 		else
+		{
 			perror("invalid flags");
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
