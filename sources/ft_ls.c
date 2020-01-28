@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 12:43:24 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/26 22:16:49 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/28 12:44:23 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,95 +28,32 @@ char		*full_path(char *file_name, char *working_dir)
 	return (full_path);
 }
 
-void		free_tree(t_lsnode *curr)
+void		print_dir_tree(t_lsnode *curr, t_lsargs *ls_args)
 {
+	if (!curr)
+		return ;
 	if (curr->left)
-		free_tree(curr->left);
+		print_dir_tree(curr->left, ls_args);
+	ft_printf("\n\n%s:\n", curr->working_dir);
+ 	ft_ls_R(ls_args, curr->working_dir);
 	if (curr->right)
-		free_tree(curr->right);
-	ft_strdel(&curr->name);
-	ft_strdel(&curr->working_dir);
-	free(curr);
-}
-
-void		print_tree(t_lsnode *curr, t_lsargs *ls_args)
-{
-	if (curr->left)
-		print_tree(curr->left, ls_args);
-	ft_printf("%s\t", curr->name);
-	if (ft_strlen(curr->name) < 8)
-		ft_printf("\t");
-	if (curr->right)
-		print_tree(curr->right, ls_args);
+		print_dir_tree(curr->right, ls_args);
 }
 
 /*
-**	return 1 to send left, 0 to send right. Tree reads from left to right
+**	return 1 to send left, 0 to send right. Tree reads from left to right.
+**	organizes by sort order depending on flags
 */
 
-int	sort_compare(t_lsnode *parent, t_lsnode *new, char *flags)
-{
-	int		reverse;
-
-	reverse = ft_strchr(flags, 'r') ? 1 : 0;
-	if (ft_strchr(flags, 't'))
-	{
-		if (new->lstat.st_mtime > parent->lstat.st_mtime)
-			return (reverse ? 0 : 1);
-		else
-			return (reverse ? 1 : 0);
-	}
-	else
-	{
-		if (ft_strcmp(new->name, parent->name) < 0)
-			return (reverse ? 0 : 1);
-		else
-			return (reverse ? 1 : 0);
-	}
-}
-
-void		fill_sort_tree(t_lsnode **root, t_lsnode *new, char *flags)
-{
-	if (!(*root))
-	{
-		*root = new;
-		return ;
-	}
-	if (sort_compare(*root, new, flags))
-		fill_sort_tree(&((*root)->left), new, flags);
-	else
-		fill_sort_tree(&((*root)->right), new, flags);
-}
-
-t_lsnode	*make_node(char *de_name, char *currdir)
-{
-	t_lsnode	*lsnode;
-
-	if (!(lsnode = (t_lsnode *)malloc(sizeof(t_lsnode))))
-		return (NULL);
-	lsnode->name = ft_strdup(de_name);
-	if (currdir)
-		lsnode->working_dir = full_path(lsnode->name, currdir);
-	else
-		lsnode->working_dir = ft_strdup(de_name);
-	if (lstat(lsnode->working_dir, &lsnode->lstat) == -1)
-	{
-		perror("lstat error");
-		exit(EXIT_FAILURE);
-	}
-	lsnode->is_dir = S_ISDIR(lsnode->lstat.st_mode) ? 1 : 0;
-	lsnode->left = 0;
-	lsnode->right = 0;
-	return (lsnode);
-}
-
-void	ft_ls_R(t_lsargs *ls_args, char *currdir)
+void		ft_ls_R(t_lsargs *ls_args, char *currdir)
 {
 	struct dirent	*de;
 	DIR				*dr;
 	struct stat		check;
 	char			*tmp;
+	t_lsnode		*root;
 
+	root = NULL;
 	ft_ls(ls_args, currdir);
 	dr = opendir(currdir);
 	while ((de = readdir(dr)) != NULL)
@@ -124,19 +61,18 @@ void	ft_ls_R(t_lsargs *ls_args, char *currdir)
 		tmp = full_path(de->d_name, currdir);
 		lstat(tmp, &check);
 
-		//lmao, fix this garbage ->
-		if (S_ISDIR(check.st_mode) && ft_strcmp(de->d_name, "..") && ft_strcmp(de->d_name, "."))
-		{
-			ft_printf("directory: %s\n\n", tmp);
-			ft_ls_R(ls_args, tmp);
-		}
+		//fix to work with -a
+		if (S_ISDIR(check.st_mode) && de->d_name[0] != '.')
+			fill_sort_tree(&root, make_node(de->d_name, currdir), ls_args->flags);
 		free(tmp);
 	}
+	print_dir_tree(root, ls_args);
+	free_tree(root);
 	if (dr > 0)
 		closedir(dr);
 }
 
-void	ft_ls(t_lsargs *ls_args, char *currdir)
+void		ft_ls(t_lsargs *ls_args, char *currdir)
 {
 	struct dirent	*de;
 	DIR				*dr;
@@ -154,7 +90,7 @@ void	ft_ls(t_lsargs *ls_args, char *currdir)
 **	parses for specified files, then directories
 */
 
-void	ls_order(t_lsargs *ls_args)
+void		ls_order(t_lsargs *ls_args)
 {
 	int			i;
 	DIR			*dr;
@@ -191,15 +127,36 @@ void	ls_order(t_lsargs *ls_args)
 	}
 }
 
-int		main(int ac, char **av)
+int			main(int ac, char **av)
 {
 	t_lsargs		*ls_args;
-	int				i;
 
-	i = -1;
-	if (ac == 0)
-		return (0);
 	ls_args = parse_input(ac, av);
 	ls_order(ls_args);
 	return (0);
 }
+
+// void		ft_ls_R(t_lsargs *ls_args, char *currdir)
+// {
+// 	struct dirent	*de;
+// 	DIR				*dr;
+// 	struct stat		check;
+// 	char			*tmp;
+
+// 	ft_ls(ls_args, currdir);
+// 	dr = opendir(currdir);
+// 	while ((de = readdir(dr)) != NULL)
+// 	{
+// 		tmp = full_path(de->d_name, currdir);
+// 		lstat(tmp, &check);
+
+// 		if (S_ISDIR(check.st_mode) && de->d_name[0] != '.')
+// 		{
+// 			ft_printf("\n\n%s:\n", tmp);
+// 			ft_ls_R(ls_args, tmp);
+// 		}
+// 		free(tmp);
+// 	}
+// 	if (dr > 0)
+// 		closedir(dr);
+// }

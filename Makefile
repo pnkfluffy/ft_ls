@@ -6,7 +6,7 @@
 #    By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/01/19 18:02:02 by jfelty            #+#    #+#              #
-#    Updated: 2020/01/20 12:02:19 by jfelty           ###   ########.fr        #
+#    Updated: 2020/01/28 12:07:28 by jfelty           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,8 @@ CFLAGS = -Wall -Wextra -Werror
 LIBFT = sources/libft/libft.a
 
 SRC =	sources/ft_ls.c				\
-		sources/parse_arguments.c
+		sources/parse_arguments.c	\
+		sources/ft_ls_tree.c
 
 all: $(NAME)
 
