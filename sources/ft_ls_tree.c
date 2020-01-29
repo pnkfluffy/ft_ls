@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/28 11:57:29 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/28 12:42:42 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/28 16:30:01 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,17 +23,6 @@ void		free_tree(t_lsnode *curr)
 	ft_strdel(&curr->name);
 	ft_strdel(&curr->working_dir);
 	free(curr);
-}
-
-void		print_tree(t_lsnode *curr, t_lsargs *ls_args)
-{
-	if (curr->left)
-		print_tree(curr->left, ls_args);
-	ft_printf("%s\t", curr->name);
-	if (ft_strlen(curr->name) < 8)
-		ft_printf("\t");
-	if (curr->right)
-		print_tree(curr->right, ls_args);
 }
 
 int	        sort_compare(t_lsnode *parent, t_lsnode *new, char *flags)

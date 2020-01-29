@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/20 11:39:35 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/26 20:28:26 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/28 14:11:13 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,17 +28,6 @@ int			valid_dir(char *dir_add)
 	if (dr > 0)
 		closedir(dr);
 	return (1);
-}
-
-char		*fix_dir(char *dir)
-{
-	char	*tmp;
-	char	*fixed_dir;
-
-	if (ft_strchr(VALID_DIR, dir[0]) && dir[ft_strlen(dir) - 1] == '/')
-		return (ft_strdup(dir));
-	else
-		return(ft_strjoin("./", dir));
 }
 
 /*

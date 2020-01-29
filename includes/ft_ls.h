@@ -6,7 +6,7 @@
 /*   By: jfelty <jfelty@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 12:43:09 by jfelty            #+#    #+#             */
-/*   Updated: 2020/01/28 12:08:21 by jfelty           ###   ########.fr       */
+/*   Updated: 2020/01/28 16:30:13 by jfelty           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ typedef struct		s_lsargs
 }					t_lsargs;
 
 /*
-**	parse_arguments.c
+**	ft_ls_parse_arguments.c
 */
 
 int			valid_dir(char *dir_add);
@@ -58,24 +58,34 @@ void		parse_flags(char *flags, char *arg);
 t_lsargs	*parse_input(int ac, char **av);
 
 /*
-**	ft_ls_h.c
+**	ft_ls_tree.c
 */
 
 void		free_tree(t_lsnode *curr);
-void		print_tree(t_lsnode *curr, t_lsargs *ls_args);
 int			sort_compare(t_lsnode *parent, t_lsnode *new, char *flags);
 void		fill_sort_tree(t_lsnode **root, t_lsnode *new, char *flags);
 t_lsnode	*make_node(char *de_name, char *currdir);
 
+/*
+**	ft_ls_helper.c
+*/
+
+char		*fix_dir(char *dir);
+char		*full_path(char *file_name, char *working_dir);
+
+/*
+**	ft_ls_print.c
+*/
+
+void		print_tree(t_lsnode *curr, t_lsargs *ls_args);
+void		print_dir_tree(t_lsnode *curr, t_lsargs *ls_args);
 
 /*
 **	ft_ls.c
 */
 
 void		ft_ls(t_lsargs *ls_args, char *currdir);
-void		ft_ls_R(t_lsargs *ls_args, char *currdir);
+void		ft_ls_recur(t_lsargs *ls_args, char *currdir);
 void		ls_order(t_lsargs *ls_args);
-
-char		*full_path(char *file_name, char *working_dir);
 
 #endif
